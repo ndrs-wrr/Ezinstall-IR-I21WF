@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Setting Position</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--===============================================================================================-->
+	<link rel="stylesheet" href="view/css/bootstrap.min.css">
+  	<link rel="stylesheet" href="view/dist/css/bootstrap-select.css">
+	<script src="view/vendor/jquery/jquery-3.2.1.min.js"></script>
+	<script src="view/vendor/bootstrap/js/popper.js"></script>
+	<script src="view/vendor/bootstrap/js/bootstrap.min.js"></script>
+
+	<link rel="stylesheet" href="view/dist/css/bootstrap-select.css">
+	<script src="view/dist/js/bootstrap-select.js"></script>
+  	<link rel="stylesheet" href="view/css/jquery-confirm.css">
+  	<script src="view/js/jquery-confirm.js"></script>
+  	<script src="config/config.js"></script>
+    <script type="text/javascript" src="cordova.js"></script>
+
+<style type="text/css">
+	
+</style>
+<script type="text/javascript">
+        function onLoad() {
+        	// alert('onload');
+        	$('#loadscn').hide();
+            document.addEventListener("deviceready", onDeviceReady, false);
+        }
+
+        // device APIs are available
+        //
+        function onDeviceReady() {
+        	// alert('ready');
+        	ConnectToWifi(localStorage.ssid_access_point, localStorage.pass_access_point);
+        }
+        function turn_wifi_off() {
+            WifiWizard2.setWifiEnabled(false, win, fail);
+        }
+        function win() {
+            console.log("Disabled wifi");
+            location.href = "index.html";
+        }
+        function fail(a) {
+                console.log(a);
+        }
+
+        function open_wifi() {
+			if (window.cordova && window.cordova.plugins.settings) {
+			    console.log('openNativeSettingsTest is active');
+			    window.cordova.plugins.settings.open("wifi", function() {
+			            console.log('opened settings');
+			        },
+			        function () {
+			            console.log('failed to open settings');
+			        }
+			    );
+			} else {
+			    console.log('openNativeSettingsTest is not active!');
+			}
+		}   
+
+		function check_network(value) {
+			var blocks = value.split(".");
+			if(blocks.length == 4){
+				for (var run in blocks) {
+					console.log(blocks[run]);
+					if (blocks[run] >= 0 &&
+						blocks[run] <= 255 &&
+						blocks[run] !== '' &&
+						blocks[run].length <= 3) {
+						check = true;
+					} else {
+						check = false;
+						break;
+					}
+				}
+				return check
+			} else {
+				return false;
+			}
+		}  
+
+		function ConnectToWifi(ssid, pass){
+			console.log("inside ConnectToWifi function");
+			// alert('connecting');
+			WifiWizard2.setWifiEnabled(true,
+			function(){
+				console.log("WiFi is enabled");
+				// alert('success');
+				//var of the SSID
+				ServerSSID = ssid;
+				//var of the password
+				ServerPassword = pass;		
+				// $Uw7i{C6j8@JR|dTWsR(3yRv
+				wifiConfig = WifiWizard2.formatWPAConfig(ServerSSID, ServerPassword);
+
+				WifiWizard2.addNetwork(wifiConfig,
+					//success
+					function(){
+						console.log("addNetwork is a success");
+						console.log("connecting to SSID = " + ServerSSID);
+
+						WifiWizard2.androidConnectNetwork(ServerSSID,
+							//success
+							function(){
+								console.log("Connect to SSID = " + ServerSSID + " is a success");
+								$('.connecting_btn').hide();
+								$('.connected_btn').show();
+							},
+							//fail
+							function(){
+								console.log("Connect to SSID = " + ServerSSID + " is a fail");
+								alert('Please open wifi setting and setup manually');
+								$.alert({
+								    title: 'Connect to WIFI Fail!',
+								    content: 'Please open wifi setting and setup manually',
+								});	
+								$('.connecting_btn').hide();			
+								$(".wifi_setting_detail").hide();
+							}
+						);
+					},
+					//fail
+					function(){
+						console.log("addNetwork FAILED");
+					}
+				);
+			},
+			function(){
+				// alert('failed');
+				console.log("WiFi enable failed");
+			});
+		}
+
+		 $(document).ready(function() {
+		 	// alert('deviceready');
+		 	$('#loadscn').hide();
+			$('.wifi_setting_detail').hide();
+		 	$(".ssid_ms").val(localStorage.ssid_access_point);
+		 	$(".pass_ms").val(localStorage.pass_access_point);
+			$(".storage_address").val(localStorage.storage);
+			// $("#rtsc_select").val(http_header);
+			$(".prefix").val(localStorage.prefix);		
+
+			$('#networkconfig').hide();
+			$('#dis_wifi').hide();
+			$('#dis_storage').hide();
+			$('#dis_prefix').hide();
+			$('#dis_network').hide();
+			$('#dis_ntp').hide();
+			$('#dis_ftp').hide();
+			$('#dis_mqtt').hide();
+
+            localStorage.removeItem('interval');
+            // localStorage.removeItem('send_rtsc');
+			localStorage.removeItem('wifi_mode'); 	
+
+		 	$(document).on('click','.ok_btn', function() {
+		 		$('#loadscn').show();
+
+				var ssid_wifi 		= $(".ssid_wifi").val();
+		        var ssid_pwd_wifi 	= $(".ssid_pwd_wifi").val();
+		        var interval 		= $("#interval_select option:selected").val();
+		        // var send_rtsc = $("#rtsc_select" ).val();
+		        var storage_address = $(".storage_address").val();
+				var storage_address_path = $(".storage_address_path").val();
+				var prefix 			= $(".prefix").val();
+		        var wifi_mode 		= $("#wifi_mode option:selected").val();
+		        var ipAddress 		= $("#ipAddress").val();
+		        var subnet 			= $("#subnet").val();
+				var gateway 		= $("#gateway").val();
+				var ntpServ 		= $(".ntpServ").val();
+				var ftpServ 		= $(".ftpServ").val();
+		        var ftpPort 		= $(".ftpPort").val();
+		        var ftpUser 		= $(".ftpUser").val();
+				var ftpPwd 			= $(".ftpPwd").val();
+				var otaAuto 		= $(".otaAuto").val();
+				var otaUpdate 		= $(".otaUpdate").val();
+		        var mqttServ 		= $(".mqttServ").val();
+		        var mqttPort 		= $(".mqttPort").val();
+				var mqttUser 		= $(".mqttUser").val();
+				var mqttPwd 		= $(".mqttPwd").val();				
+
+		        localStorage.setItem("ssid_wifi", ssid_wifi);
+		        localStorage.setItem("ssid_pwd_wifi", ssid_pwd_wifi);
+		        localStorage.setItem("interval", interval);
+            	// localStorage.setItem("send_rtsc", send_rtsc);
+		        localStorage.setItem("storage_address", storage_address);
+				localStorage.setItem("storage_address_path", storage_address_path);
+				localStorage.setItem("prefix", prefix);
+		        localStorage.setItem("wifi_mode", wifi_mode);
+		        localStorage.setItem("ipAddress", ipAddress);
+		        localStorage.setItem("subnet", subnet);
+				localStorage.setItem("gateway", gateway);
+				localStorage.setItem("ntpServ", ntpServ);
+				localStorage.setItem("ftpServ", ftpServ);
+				localStorage.setItem("ftpPort", ftpPort);
+				localStorage.setItem("ftpUser", ftpUser);
+				localStorage.setItem("ftpPwd", ftpPwd);
+				localStorage.setItem("otaAuto", otaAuto);
+				localStorage.setItem("otaUpdate", otaUpdate);
+				localStorage.setItem("mqttServ", mqttServ);
+				localStorage.setItem("mqttPort", mqttPort);
+				localStorage.setItem("mqttUser", mqttUser);
+				localStorage.setItem("mqttPwd", mqttPwd);
+		        
+		        if(ssid_wifi.length < 1 || ssid_pwd_wifi.length < 1){
+		 			$('#loadscn').hide();
+		        	$.alert({
+					    title: 'Alert!',
+					    content: 'please fill out the form!',
+					});
+		        } else {
+		        	if ((check_network(ipAddress) === false ||
+		        		check_network(subnet) === false ||
+		        		check_network(gateway) === false) && wifi_mode == 2) {
+		 			$('#loadscn').hide();
+				        	$.alert(
+					        	{
+								    title: 'Alert!',
+								    content: 'Format Network is invalid.',
+								}
+							);
+		        	} else {
+		        		alert(ssid_wifi);
+		        		send_ssid();
+		        	}
+		        }
+			});
+		 	
+		    $(document).on('change','#floor_select', function() {
+			    var selected = $('#floor_select option:selected').text();
+			    console.log(selected);
+			    selected = selected.replace("Fl","");
+			    $(".room_select").hide();
+			    $(".room_selected"+selected).show();
+			    $(".zone_select").hide();
+			    $(".zone_selected"+selected).show();
+			});
+
+			$(document).on('change','#wifi_mode', function() {
+				if($('#wifi_mode').val() == 2) {
+					$('#networkconfig').show(); 
+				} else {
+					$('#networkconfig').hide(); 
+				} 
+			});
+
+			$(document).on('click','#wifi_id', function() {
+				$('#dis_wifi').slideToggle();
+			});
+			$(document).on('click','#storage_id', function() {
+				$('#dis_storage').slideToggle();
+			});
+			$(document).on('click','#prefix_id', function() {
+				$('#dis_prefix').slideToggle();
+			});
+			$(document).on('click','#network_id', function() {
+				$('#dis_network').slideToggle();
+			});
+			$(document).on('click','#ntp_id', function() {
+				$('#dis_ntp').slideToggle();
+			});
+			$(document).on('click','#ftp_id', function() {
+				$('#dis_ftp').slideToggle();
+			});
+			$(document).on('click','#mqtt_id', function() {
+				$('#dis_mqtt').slideToggle();
+			});
+	
+		});
+
+		function scan() {
+			console.log("result");
+			cordova.plugins.barcodeScanner.scan(
+				function (result) {
+					console.log(result);
+					if(!result.cancelled)
+					{
+						if(result.format == "QR_CODE")
+						{
+							var data = result.text;
+								data = data.replace(/\s/g,'');
+								data = JSON.parse(data);
+
+							if (!data == "" ){
+								console.log("data : ",data);
+								localStorage.setItem("ssid_wifi", data.ssid);
+								localStorage.setItem("ssid_pwd_wifi", data.ssid_pass);
+								localStorage.setItem("storage_address", data.str_addr);
+								localStorage.setItem("storage_address_path", data.str_path);
+								localStorage.setItem("prefix", data.point_prefix);
+								localStorage.setItem("ipAddress", data.ipAddress);
+								localStorage.setItem("subnet", data.subnet);
+								localStorage.setItem("gateway", data.gateway);
+								localStorage.setItem("ntpServ", data.ntpServ);
+								localStorage.setItem("ftpServ", data.ftpServ);
+								localStorage.setItem("ftpPort", data.ftpPort);
+								localStorage.setItem("ftpUser", data.ftpUser);
+								localStorage.setItem("ftpPwd", data.ftpPwd);
+								localStorage.setItem("otaAuto", data.otaAuto);
+								localStorage.setItem("otaUpdate", data.otaUpdate);
+								localStorage.setItem("mqttServ", data.mqttServ);
+								localStorage.setItem("mqttPort", data.mqttPort);
+								localStorage.setItem("mqttUser", data.mqttUser);
+								localStorage.setItem("mqttPwd", data.mqttPwd);
+
+								$(".ssid_ms").val(localStorage.ssid_access_point);
+								$(".pass_ms").val(localStorage.pass_access_point);
+								$(".ssid_wifi").val(localStorage.ssid_wifi);
+								$(".ssid_pwd_wifi").val(localStorage.ssid_pwd_wifi);
+								// $("#rtsc_select").val(http_header);
+								$(".storage_address").val(localStorage.storage_address);
+								$(".storage_address_path").val(localStorage.storage_address_path);
+								$(".prefix").val(localStorage.prefix);
+								$("#ipAddress").val(localStorage.ipAddress);
+								$("#subnet").val(localStorage.subnet);
+								$("#gateway").val(localStorage.gateway);
+								$(".ntpServ").val(localStorage.ntpServ);
+								$(".ftpServ").val(localStorage.ftpServ);
+								$(".ftpPort").val(localStorage.ftpPort);
+								$(".ftpUser").val(localStorage.ftpUser);
+								$(".ftpPwd").val(localStorage.ftpPwd);
+								$(".otaAuto").val(localStorage.otaAuto);
+								$(".otaUpdate").val(localStorage.otaUpdate);
+								$(".mqttServ").val(localStorage.mqttServ);
+								$(".mqttPort").val(localStorage.mqttPort);
+								$(".mqttUser").val(localStorage.mqttUser);
+								$(".mqttPwd").val(localStorage.mqttPwd);
+
+								$('#networkconfig').hide();
+							}
+							else{
+								$.alert({
+									title: 'Alert!',
+									content: "This QR_CODE isn't device detail ,please scan again",
+								});
+							}
+
+						}
+					}
+				},
+				function (error) {
+					$.alert({
+						title: 'Alert!',
+						content: "Scanning failed: " + error,
+					});
+				}
+			);
+		}
+
+		function send_ssid() {
+			console.log('ssid');
+			var ssid_data  = localStorage.ssid_wifi;
+			console.log(ssid_data);
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 0, "value": ssid_data}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					// "headers": {"EMU-CMD": "{\"command\": 0, \"value\":\""+ssid_data+"\"}"},
+					"data": "{\"command\": 0, \"value\":\""+ssid_data+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			console.log(settings);
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_password();
+					setTimeout(send_password(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+        } 
+        
+        function send_password() {
+			console.log('pass');
+			var pass_data  = localStorage.ssid_pwd_wifi;
+         	if (localStorage.type == 'MS') {
+				var settings = {
+				  	"async": true,
+				  	"crossDomain": true,
+				  	"url": "http://192.168.4.1:7878/config",
+				  	"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 1, "value": pass_data}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					// "headers": {"EMU-CMD": "{\"command\": 1, \"value\":\""+pass_data+"\"}"}	
+				  	"data": "{\"command\": 1, \"value\":\""+pass_data+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_interval();
+					setTimeout(send_interval(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+        }
+
+        function send_interval() {
+			console.log('interval');
+  			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 3, "value": localStorage.interval}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+  				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\":3, \"value\":\""+localStorage.interval+"\"}"}
+				  	"data": "{\"command\":3, \"value\":\""+localStorage.interval+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_rtsc();
+					// send_storage_add();
+					setTimeout(send_storage_add(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+        }  
+
+        // function send_rtsc() {
+		// 	console.log('send_rtsc');
+		// 	if (localStorage.type == 'MS') {
+		// 		var settings = {
+		// 			"async": true,
+		// 			"crossDomain": true,
+		// 			"url": "http://192.168.4.1:7878/config",
+		// 			"method": "POST",
+		// 			"data": "{\"command\":16, \"value\":\""+localStorage.send_rtsc+"\"}",
+		// 			error: function(){
+		// 				$('#loadscn').hide();
+		// 			}
+		// 		}
+		// 	} else if(localStorage.type == 'EMU') {
+		// 		var settings = {
+		// 			"async": true,
+		// 			"crossDomain": true,
+		// 			"url": "http://192.168.4.1:7878/config",
+		// 			"method": "POST",
+		// 		  	// "headers": {"EMU-CMD": "{\"command\":16, \"value\":\""+localStorage.send_rtsc+"\"}"}
+		// 			"data": "{\"command\":16, \"value\":\""+localStorage.send_rtsc+"\"}",
+		// 			error: function(){
+		// 				$('#loadscn').hide();
+		// 			}
+		// 		}
+		// 	}
+		// 	$.ajax(settings).done(function (response) {
+		// 		console.log(response);
+		// 		if(response.RSLT == "OK"){
+		// 			send_storage_add();
+		// 		} else {
+		//  			$('#loadscn').hide();
+		// 		}
+		// 	});
+        // } 
+
+        function send_storage_add() {
+			console.log('storage_Add');
+			var storage_add  = localStorage.storage_address.replace("http://","");
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 6, "value": storage_add}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 6, \"value\":\""+storage_add+"\"}"}
+					"data": "{\"command\": 6, \"value\":\""+storage_add+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_storage_path();
+					setTimeout(send_storage_path(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+        }
+
+        function send_storage_path() {
+			console.log('storage_path');
+			var storage_path  = localStorage.storage_address_path;
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 7, "value": storage_path}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 7, \"value\":\""+storage_path+"\"}"}
+					"data": "{\"command\": 7, \"value\":\""+storage_path+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_prefix();
+					setTimeout(send_prefix(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_prefix() {
+			console.log('prefix');
+			var prefix  = localStorage.prefix;
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 5, "value": prefix}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 5, \"value\":\""+prefix+"\"}"}
+					"data": "{\"command\": 5, \"value\":\""+prefix+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_mode();
+					setTimeout(send_mode(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+
+        function send_mode() {
+			console.log('wifi_mode');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 2, "value": localStorage.wifi_mode}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 2, \"value\":\""+localStorage.wifi_mode+"\"}"}
+					"data": "{\"command\": 2, \"value\":\""+localStorage.wifi_mode+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				var wifi_mode = $("#wifi_mode option:selected").val();
+				console.log(wifi_mode);
+				if(response.RSLT == "OK"){
+					if (wifi_mode == 1) {
+						// send_ntpServ();
+						setTimeout(send_ntpServ(), 3000);
+					} else {
+						// send_ipaddress();
+						setTimeout(send_ipaddress(), 3000);
+					}
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+        }    
+
+        function send_ipaddress() {
+			console.log('ipaddress');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 19, "value": localStorage.ipAddress}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 19, \"value\":\""+localStorage.ipAddress+"\"}"}
+					"data": "{\"command\": 19, \"value\":\""+localStorage.ipAddress+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					send_subnet();
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+        }
+
+        function send_subnet() {
+			console.log('subnet');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 20, "value": localStorage.subnet}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 20, \"value\":\""+localStorage.subnet+"\"}"}
+					"data": "{\"command\": 20, \"value\":\""+localStorage.subnet+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					send_gateway();
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+        }
+
+        function send_gateway() {
+			console.log('gateway');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 21, "value": localStorage.gateway}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 21, \"value\":\""+localStorage.gateway+"\"}"}
+					"data": "{\"command\": 21, \"value\":\""+localStorage.gateway+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					send_ntpServ();
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_ntpServ() {
+			console.log('ntpServ');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 18, "value": localStorage.ntpServ}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 18, \"value\":\""+localStorage.ntpServ+"\"}"}
+					"data": "{\"command\": 18, \"value\":\""+localStorage.ntpServ+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_ftpServ();
+					setTimeout(send_ftpServ(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_ftpServ() {
+			console.log('ftpServ');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 8, "value": localStorage.ftpServ}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 8, \"value\":\""+localStorage.ftpServ+"\"}"}
+					"data": "{\"command\": 8, \"value\":\""+localStorage.ftpServ+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_ftpPort();
+					setTimeout(send_ftpPort(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_ftpPort() {
+			console.log('ftpPort');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 9, "value": localStorage.ftpPort}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 9, \"value\":\""+localStorage.ftpPort+"\"}"}
+					"data": "{\"command\": 9, \"value\":\""+localStorage.ftpPort+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_ftpUser();
+					setTimeout(send_ftpUser(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_ftpUser() {
+			console.log('ftpUser');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 10, "value": localStorage.ftpUser}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 10, \"value\":\""+localStorage.ftpUser+"\"}"}
+					"data": "{\"command\": 10, \"value\":\""+localStorage.ftpUser+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_ftpPwd();
+					setTimeout(send_ftpPwd(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_ftpPwd() {
+			console.log('ftpPwd');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 11, "value": localStorage.ftpPwd}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 11, \"value\":\""+localStorage.ftpPwd+"\"}"}
+					"data": "{\"command\": 11, \"value\":\""+localStorage.ftpPwd+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_otaAuto();
+					setTimeout(send_otaAuto(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_otaAuto() {
+			console.log('otaAuto');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 14, "value": localStorage.otaAuto}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 14, \"value\":\""+localStorage.otaAuto+"\"}"}
+					"data": "{\"command\": 14, \"value\":\""+localStorage.otaAuto+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_otaUpdate();
+					setTimeout(send_otaUpdate(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_otaUpdate() {
+			console.log('otaUpdate');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 15, "value": localStorage.otaUpdate}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 15, \"value\":\""+localStorage.otaUpdate+"\"}"}
+					"data": "{\"command\": 15, \"value\":\""+localStorage.otaUpdate+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_mqttServ();
+					setTimeout(send_mqttServ(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_mqttServ() {
+			console.log('mqttServ');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 38, "value": localStorage.mqttServ}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 38, \"value\":\""+localStorage.mqttServ+"\"}"}
+					"data": "{\"command\": 38, \"value\":\""+localStorage.mqttServ+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_mqttPort();
+					setTimeout(send_mqttPort(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_mqttPort() {
+			console.log('mqttPort');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 39, "value": localStorage.mqttPort}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 39, \"value\":\""+localStorage.mqttPort+"\"}"}
+					"data": "{\"command\": 39, \"value\":\""+localStorage.mqttPort+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_mqttUser();
+					setTimeout(send_mqttUser(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_mqttUser() {
+			console.log('mqttUser');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 40, "value": localStorage.mqttUser}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 40, \"value\":\""+localStorage.mqttUser+"\"}"}
+					"data": "{\"command\": 40, \"value\":\""+localStorage.mqttUser+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_mqttPwd();
+					setTimeout(send_mqttPwd(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+		}
+		
+		function send_mqttPwd() {
+			console.log('mqttPwd');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 41, "value": localStorage.mqttPwd}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 41, \"value\":\""+localStorage.mqttPwd+"\"}"}
+					"data": "{\"command\": 41, \"value\":\""+localStorage.mqttPwd+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_reboot();
+					setTimeout(send_reboot(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+        }
+
+        function send_reboot() {
+			console.log('reboot');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 4, "value": 0}),
+					"data": "{\"command\": 4, \"value\":\"0\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 4, \"value\":\"0\"}"}
+					"data": "{\"command\": 4, \"value\":\"0\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+		 			$('#loadscn').hide();
+					$.alert({
+                        title: 'Complete',
+                        content: 'Device setup complete !',
+                        buttons: {
+                            OK: function () {
+                                location.href = "index.html";
+                            },
+                        }
+                    });
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+        } 
+</script>
+<style type="text/css">
+	
+/* Center the loader */
+.loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid #3498db;
+  width: 120px;
+  height: 120px;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+</style>
+</head>
+<body  onload="onLoad()">
+	<div id="loadscn" style="position: fixed; width: 100%; height: 100%; background-color: rgba(238, 238, 238, 0.75); z-index: 2000;">
+		<div class="loader" style="z-index: 999"></div>
+	</div>
+	<div class="container">
+		</br>
+		<div class="device_setting">
+			<h2 style="color:#827ffe">Device Setting</h2>
+			<div class="row">
+				<div class="col-xs-6"><button type="button" class="btn btn-primary btn-lg active scan_btn" style="width: -webkit-fill-available;" onclick="scan()">scan</button></div>
+				<div class="col-xs-6"><button type="button" class="btn btn-primary btn-lg active ok_btn" style="width: -webkit-fill-available;">save</button></div>
+			</div>
+		</div>
+		<div class="wifi_setting_detail" style="display: none;">
+			<h2 style="color:#827ffe">Access Point Detail</h2>
+			<hr>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					SSID 
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control ssid_ms" style="width: 220px;" disabled="disabled" >
+				</div>
+			</div>
+			<br>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ">
+					Password 
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control pass_ms" style="width: 220px;" disabled="disabled">
+				</div>
+			</div>
+			</br>
+			<br>
+			<div class="row">
+				<div class="col-xs-12" >
+					<button type="button" class="btn btn-info btn-lg active wifi_setting_btn" onclick="open_wifi()" style="width: 100%;">
+						<span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Open wifi setting
+					</button>
+				</div>
+			</div>
+		</div>
+		<!-- </br> -->
+		<div class="row">
+			<div class="col-xs-12" >
+				<button type="button" class="btn btn-primary btn-lg active connecting_btn" style="width: 100%">
+					<img src="view/img/lg.comet-spinner.gif" style="height: 30px"> Connecting to Device's WIFI
+				</button>
+				<button type="button" class="btn btn-success btn-lg active connected_btn" style="width: 100%;display: none">
+					 Device's WIFI is connected
+				</button>
+			</div>
+		</div>
+		<!-- </br> -->
+		<h2 id="wifi_id" type="button" style="color:#827ffe">WiFi ▼</h2>
+		<hr>
+		<div id="dis_wifi">
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					SSID
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control ssid_wifi" style="width: 220px;" >
+				</div>
+			</div>
+			</br>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ">
+					Password
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control ssid_pwd_wifi" style="width: 220px;" >
+				</div>
+			</div>
+		</div>
+		</br>
+		<h2 id="storage_id" style="color:#827ffe">Storage ▼</h2>
+		<hr>
+		<div id="dis_storage">
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ">
+					Interval
+				</div>
+				<div class="col-xs-8">
+					<select id="interval_select" class="selectpicker">
+					  <option value="60000">1 min</option>
+					  <option value="120000">2 min</option>
+					  <option value="180000">3 min</option>
+					  <option value="240000">4 min</option>
+					  <option value="300000">5 min</option>
+					  <option value="360000">6 min</option>
+					  <option value="420000">7 min</option>
+					  <option value="480000">8 min</option>
+					  <option value="540000">9 min</option>
+					  <option value="600000">10 min</option>
+					  <option value="660000">11 min</option>
+					  <option value="720000">12 min</option>
+					  <option value="780000">13 min</option>
+					  <option value="840000">14 min</option>
+					  <option value="900000">15 min</option>
+					</select>
+				</div>
+			</div>
+			</br>    
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ">
+					Storage 
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control storage_address"  style="width: 220px;" >
+				</div>
+			</div>
+			</br>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ">
+					Storage Path
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control storage_address_path"  style="width: 220px;" >
+				</div>
+			</div>
+		</div>
+		</br>
+		<!-- <div class="row">
+			<div class="col-xs-4" style="font-size: 20px ">
+				Http Header
+			</div>
+			<div class="col-xs-8">
+				<input id="rtsc_select" type="text" class="form-control" style="width: 220px;" >
+			</div>
+		</div>
+		</br> -->
+		<h2 id="prefix_id" type="button" style="color:#827ffe">PointID Prefix ▼</h2>
+		<hr>
+		<div id="dis_prefix">
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					PointID Prefix
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control prefix" style="width: 220px;" >
+				</div>
+			</div>
+		</div>
+		</br>
+		<h2 id="network_id" type="button" style="color:#827ffe">Network Mode ▼</h2>
+		<hr>
+		<div id="dis_network">
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ">Mode</div>
+				<div class="col-xs-8">
+					<select id="wifi_mode" class="selectpicker">
+					  <option value="1" selected="selected">DHCP</option>
+					  <option value="2">Static IP</option>
+					</select>
+				</div>
+			</div>
+			</br>
+			<div id="networkconfig">
+				<div class="row">
+					<div class="col-xs-4" style="font-size: 20px ">
+						IP Address 
+					</div>
+					<div class="col-xs-8">
+						<input id="ipAddress" type="text" class="form-control" style="width: 220px;" >
+					</div>
+				</div>
+				<br>
+				<div class="row">
+					<div class="col-xs-4" style="font-size: 20px ">
+						Subnet Mask 
+					</div>
+					<div class="col-xs-8">
+						<input id="subnet" type="text" class="form-control" style="width: 220px;" >
+					</div>
+				</div>
+				<br>
+				<div class="row">
+					<div class="col-xs-4" style="font-size: 20px ">
+						Default Gateway 
+					</div>
+					<div class="col-xs-8">
+						<input id="gateway" type="text" class="form-control" style="width: 220px;" >
+					</div>
+				</div>
+			</div>
+		</div>
+		</br>
+		<h2 id="ntp_id" type="button" style="color:#827ffe">NTP server ▼</h2>
+		<hr>
+		<div id="dis_ntp">
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					NTP Server
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control ntpServ" style="width: 220px;" >
+				</div>
+			</div>
+		</div>
+		</br>
+		<h2 id="ftp_id" type="button" style="color:#827ffe">FTP server ▼</h2>
+		<hr>
+		<div id="dis_ftp">
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					FTP Server 
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control ftpServ" style="width: 220px;" >
+				</div>
+			</div>
+			</br>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					FTP Port 
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control ftpPort" style="width: 220px;" >
+				</div>
+			</div>
+			</br>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					Username 
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control ftpUser" style="width: 220px;" >
+				</div>
+			</div>
+			</br>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					Password
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control ftpPwd" style="width: 220px;" >
+				</div>
+			</div>
+			</br>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					OTA Auto Update
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control otaAuto" style="width: 220px;" >
+				</div>
+			</div>
+			</br>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					OTA Update HR
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control otaUpdate" style="width: 220px;" >
+				</div>
+			</div>
+		</div>
+		</br>
+		<h2 id="mqtt_id" type="button" style="color:#827ffe">MQTT server ▼</h2>
+		<hr>
+		<div id="dis_mqtt">
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					MQTT Server
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control mqttServ" style="width: 220px;" >
+				</div>
+			</div>
+			</br>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					MQTT Port
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control mqttPort" style="width: 220px;" >
+				</div>
+			</div>
+			</br>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					Username
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control mqttUser" style="width: 220px;" >
+				</div>
+			</div>
+			</br>
+			<div class="row">
+				<div class="col-xs-4" style="font-size: 20px ;">
+					Password
+				</div>
+				<div class="col-xs-8">
+					<input type="text" class="form-control mqttPwd" style="width: 220px;" >
+				</div>
+			</div>
+			</br>
+		</div>
+	</div>
+	<br>
+</body>
+</html>
