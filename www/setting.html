@@ -139,21 +139,13 @@
 			$('.wifi_setting_detail').hide();
 		 	$(".ssid_ms").val(localStorage.ssid_access_point);
 		 	$(".pass_ms").val(localStorage.pass_access_point);
-			$(".storage_address").val(localStorage.storage);
-			// $("#rtsc_select").val(http_header);
-			$(".prefix").val(localStorage.prefix);		
 
 			$('#networkconfig').hide();
 			$('#dis_wifi').hide();
-			$('#dis_storage').hide();
-			$('#dis_prefix').hide();
 			$('#dis_network').hide();
-			$('#dis_ntp').hide();
 			$('#dis_ftp').hide();
 			$('#dis_mqtt').hide();
 
-            localStorage.removeItem('interval');
-            // localStorage.removeItem('send_rtsc');
 			localStorage.removeItem('wifi_mode'); 	
 
 		 	$(document).on('click','.ok_btn', function() {
@@ -161,16 +153,10 @@
 
 				var ssid_wifi 		= $(".ssid_wifi").val();
 		        var ssid_pwd_wifi 	= $(".ssid_pwd_wifi").val();
-		        var interval 		= $("#interval_select option:selected").val();
-		        // var send_rtsc = $("#rtsc_select" ).val();
-		        var storage_address = $(".storage_address").val();
-				var storage_address_path = $(".storage_address_path").val();
-				var prefix 			= $(".prefix").val();
 		        var wifi_mode 		= $("#wifi_mode option:selected").val();
 		        var ipAddress 		= $("#ipAddress").val();
 		        var subnet 			= $("#subnet").val();
 				var gateway 		= $("#gateway").val();
-				var ntpServ 		= $(".ntpServ").val();
 				var ftpServ 		= $(".ftpServ").val();
 		        var ftpPort 		= $(".ftpPort").val();
 		        var ftpUser 		= $(".ftpUser").val();
@@ -184,16 +170,10 @@
 
 		        localStorage.setItem("ssid_wifi", ssid_wifi);
 		        localStorage.setItem("ssid_pwd_wifi", ssid_pwd_wifi);
-		        localStorage.setItem("interval", interval);
-            	// localStorage.setItem("send_rtsc", send_rtsc);
-		        localStorage.setItem("storage_address", storage_address);
-				localStorage.setItem("storage_address_path", storage_address_path);
-				localStorage.setItem("prefix", prefix);
 		        localStorage.setItem("wifi_mode", wifi_mode);
 		        localStorage.setItem("ipAddress", ipAddress);
 		        localStorage.setItem("subnet", subnet);
 				localStorage.setItem("gateway", gateway);
-				localStorage.setItem("ntpServ", ntpServ);
 				localStorage.setItem("ftpServ", ftpServ);
 				localStorage.setItem("ftpPort", ftpPort);
 				localStorage.setItem("ftpUser", ftpUser);
@@ -250,17 +230,8 @@
 			$(document).on('click','#wifi_id', function() {
 				$('#dis_wifi').slideToggle();
 			});
-			$(document).on('click','#storage_id', function() {
-				$('#dis_storage').slideToggle();
-			});
-			$(document).on('click','#prefix_id', function() {
-				$('#dis_prefix').slideToggle();
-			});
 			$(document).on('click','#network_id', function() {
 				$('#dis_network').slideToggle();
-			});
-			$(document).on('click','#ntp_id', function() {
-				$('#dis_ntp').slideToggle();
 			});
 			$(document).on('click','#ftp_id', function() {
 				$('#dis_ftp').slideToggle();
@@ -288,13 +259,9 @@
 								console.log("data : ",data);
 								localStorage.setItem("ssid_wifi", data.ssid);
 								localStorage.setItem("ssid_pwd_wifi", data.ssid_pass);
-								localStorage.setItem("storage_address", data.str_addr);
-								localStorage.setItem("storage_address_path", data.str_path);
-								localStorage.setItem("prefix", data.point_prefix);
 								localStorage.setItem("ipAddress", data.ipAddress);
 								localStorage.setItem("subnet", data.subnet);
 								localStorage.setItem("gateway", data.gateway);
-								localStorage.setItem("ntpServ", data.ntpServ);
 								localStorage.setItem("ftpServ", data.ftpServ);
 								localStorage.setItem("ftpPort", data.ftpPort);
 								localStorage.setItem("ftpUser", data.ftpUser);
@@ -310,14 +277,9 @@
 								$(".pass_ms").val(localStorage.pass_access_point);
 								$(".ssid_wifi").val(localStorage.ssid_wifi);
 								$(".ssid_pwd_wifi").val(localStorage.ssid_pwd_wifi);
-								// $("#rtsc_select").val(http_header);
-								$(".storage_address").val(localStorage.storage_address);
-								$(".storage_address_path").val(localStorage.storage_address_path);
-								$(".prefix").val(localStorage.prefix);
 								$("#ipAddress").val(localStorage.ipAddress);
 								$("#subnet").val(localStorage.subnet);
 								$("#gateway").val(localStorage.gateway);
-								$(".ntpServ").val(localStorage.ntpServ);
 								$(".ftpServ").val(localStorage.ftpServ);
 								$(".ftpPort").val(localStorage.ftpPort);
 								$(".ftpUser").val(localStorage.ftpUser);
@@ -378,6 +340,18 @@
 						$('#loadscn').hide();
 					}
 				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 0, "value": ssid_data}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
 			}
 			console.log(settings);
 			$.ajax(settings).done(function (response) {
@@ -418,194 +392,14 @@
 						$('#loadscn').hide();
 					}
 				}
-			}
-			$.ajax(settings).done(function (response) {
-				console.log(response);
-				if(response.RSLT == "OK"){
-					// send_interval();
-					setTimeout(send_interval(), 3000);
-				} else {
-		 			$('#loadscn').hide();
-				}
-			});
-        }
-
-        function send_interval() {
-			console.log('interval');
-  			if (localStorage.type == 'MS') {
+			} else if (localStorage.type == 'IR') {
 				var settings = {
-					"async": true,
-					"crossDomain": true,
-					"url": "http://192.168.4.1:7878/config",
-					"method": "POST",
+				  	"async": true,
+				  	"crossDomain": true,
+				  	"url": "http://192.168.4.1:7878/config",
+				  	"method": "POST",
 					"headers": {"Content-Type": "application/json"},
-					"data": JSON.stringify({"command": 3, "value": localStorage.interval}),
-					error: function(){
-						$('#loadscn').hide();
-					}
-  				}
-			} else if(localStorage.type == 'EMU') {
-				var settings = {
-					"async": true,
-					"crossDomain": true,
-					"url": "http://192.168.4.1:7878/config",
-					"method": "POST",
-				  	// "headers": {"EMU-CMD": "{\"command\":3, \"value\":\""+localStorage.interval+"\"}"}
-				  	"data": "{\"command\":3, \"value\":\""+localStorage.interval+"\"}",
-					error: function(){
-						$('#loadscn').hide();
-					}
-				}
-			}
-			$.ajax(settings).done(function (response) {
-				console.log(response);
-				if(response.RSLT == "OK"){
-					// send_rtsc();
-					// send_storage_add();
-					setTimeout(send_storage_add(), 3000);
-				} else {
-		 			$('#loadscn').hide();
-				}
-			});
-        }  
-
-        // function send_rtsc() {
-		// 	console.log('send_rtsc');
-		// 	if (localStorage.type == 'MS') {
-		// 		var settings = {
-		// 			"async": true,
-		// 			"crossDomain": true,
-		// 			"url": "http://192.168.4.1:7878/config",
-		// 			"method": "POST",
-		// 			"data": "{\"command\":16, \"value\":\""+localStorage.send_rtsc+"\"}",
-		// 			error: function(){
-		// 				$('#loadscn').hide();
-		// 			}
-		// 		}
-		// 	} else if(localStorage.type == 'EMU') {
-		// 		var settings = {
-		// 			"async": true,
-		// 			"crossDomain": true,
-		// 			"url": "http://192.168.4.1:7878/config",
-		// 			"method": "POST",
-		// 		  	// "headers": {"EMU-CMD": "{\"command\":16, \"value\":\""+localStorage.send_rtsc+"\"}"}
-		// 			"data": "{\"command\":16, \"value\":\""+localStorage.send_rtsc+"\"}",
-		// 			error: function(){
-		// 				$('#loadscn').hide();
-		// 			}
-		// 		}
-		// 	}
-		// 	$.ajax(settings).done(function (response) {
-		// 		console.log(response);
-		// 		if(response.RSLT == "OK"){
-		// 			send_storage_add();
-		// 		} else {
-		//  			$('#loadscn').hide();
-		// 		}
-		// 	});
-        // } 
-
-        function send_storage_add() {
-			console.log('storage_Add');
-			var storage_add  = localStorage.storage_address.replace("http://","");
-			if (localStorage.type == 'MS') {
-				var settings = {
-					"async": true,
-					"crossDomain": true,
-					"url": "http://192.168.4.1:7878/config",
-					"method": "POST",
-					"headers": {"Content-Type": "application/json"},
-					"data": JSON.stringify({"command": 6, "value": storage_add}),
-					error: function(){
-						$('#loadscn').hide();
-					}
-				}
-			} else if(localStorage.type == 'EMU') {
-				var settings = {
-					"async": true,
-					"crossDomain": true,
-					"url": "http://192.168.4.1:7878/config",
-					"method": "POST",
-				  	// "headers": {"EMU-CMD": "{\"command\": 6, \"value\":\""+storage_add+"\"}"}
-					"data": "{\"command\": 6, \"value\":\""+storage_add+"\"}",
-					error: function(){
-						$('#loadscn').hide();
-					}
-				}
-			}
-			$.ajax(settings).done(function (response) {
-				console.log(response);
-				if(response.RSLT == "OK"){
-					// send_storage_path();
-					setTimeout(send_storage_path(), 3000);
-				} else {
-		 			$('#loadscn').hide();
-				}
-			});
-        }
-
-        function send_storage_path() {
-			console.log('storage_path');
-			var storage_path  = localStorage.storage_address_path;
-			if (localStorage.type == 'MS') {
-				var settings = {
-					"async": true,
-					"crossDomain": true,
-					"url": "http://192.168.4.1:7878/config",
-					"method": "POST",
-					"headers": {"Content-Type": "application/json"},
-					"data": JSON.stringify({"command": 7, "value": storage_path}),
-					error: function(){
-						$('#loadscn').hide();
-					}
-				}
-			} else if(localStorage.type == 'EMU') {
-				var settings = {
-					"async": true,
-					"crossDomain": true,
-					"url": "http://192.168.4.1:7878/config",
-					"method": "POST",
-				  	// "headers": {"EMU-CMD": "{\"command\": 7, \"value\":\""+storage_path+"\"}"}
-					"data": "{\"command\": 7, \"value\":\""+storage_path+"\"}",
-					error: function(){
-						$('#loadscn').hide();
-					}
-				}
-			}
-			$.ajax(settings).done(function (response) {
-				console.log(response);
-				if(response.RSLT == "OK"){
-					// send_prefix();
-					setTimeout(send_prefix(), 3000);
-				} else {
-		 			$('#loadscn').hide();
-				}
-			});
-		}
-		
-		function send_prefix() {
-			console.log('prefix');
-			var prefix  = localStorage.prefix;
-			if (localStorage.type == 'MS') {
-				var settings = {
-					"async": true,
-					"crossDomain": true,
-					"url": "http://192.168.4.1:7878/config",
-					"method": "POST",
-					"headers": {"Content-Type": "application/json"},
-					"data": JSON.stringify({"command": 5, "value": prefix}),
-					error: function(){
-						$('#loadscn').hide();
-					}
-				}
-			} else if(localStorage.type == 'EMU') {
-				var settings = {
-					"async": true,
-					"crossDomain": true,
-					"url": "http://192.168.4.1:7878/config",
-					"method": "POST",
-				  	// "headers": {"EMU-CMD": "{\"command\": 5, \"value\":\""+prefix+"\"}"}
-					"data": "{\"command\": 5, \"value\":\""+prefix+"\"}",
+					"data": JSON.stringify({"command": 1, "value": pass_data}),
 					error: function(){
 						$('#loadscn').hide();
 					}
@@ -620,7 +414,7 @@
 		 			$('#loadscn').hide();
 				}
 			});
-		}
+        }
 
         function send_mode() {
 			console.log('wifi_mode');
@@ -648,6 +442,18 @@
 						$('#loadscn').hide();
 					}
 				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 2, "value": localStorage.wifi_mode}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
 			}
 			$.ajax(settings).done(function (response) {
 				console.log(response);
@@ -655,8 +461,8 @@
 				console.log(wifi_mode);
 				if(response.RSLT == "OK"){
 					if (wifi_mode == 1) {
-						// send_ntpServ();
-						setTimeout(send_ntpServ(), 3000);
+						// send_ftpServ();
+						setTimeout(send_ftpServ(), 3000);
 					} else {
 						// send_ipaddress();
 						setTimeout(send_ipaddress(), 3000);
@@ -689,6 +495,18 @@
 					"method": "POST",
 				  	// "headers": {"EMU-CMD": "{\"command\": 19, \"value\":\""+localStorage.ipAddress+"\"}"}
 					"data": "{\"command\": 19, \"value\":\""+localStorage.ipAddress+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 19, "value": localStorage.ipAddress}),
 					error: function(){
 						$('#loadscn').hide();
 					}
@@ -730,6 +548,18 @@
 						$('#loadscn').hide();
 					}
 				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 20, "value": localStorage.subnet}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
 			}
 			$.ajax(settings).done(function (response) {
 				console.log(response);
@@ -767,39 +597,14 @@
 						$('#loadscn').hide();
 					}
 				}
-			}
-			$.ajax(settings).done(function (response) {
-				console.log(response);
-				if(response.RSLT == "OK"){
-					send_ntpServ();
-				} else {
-		 			$('#loadscn').hide();
-				}
-			});
-		}
-		
-		function send_ntpServ() {
-			console.log('ntpServ');
-			if (localStorage.type == 'MS') {
+			} else if (localStorage.type == 'IR') {
 				var settings = {
 					"async": true,
 					"crossDomain": true,
 					"url": "http://192.168.4.1:7878/config",
 					"method": "POST",
 					"headers": {"Content-Type": "application/json"},
-					"data": JSON.stringify({"command": 18, "value": localStorage.ntpServ}),
-					error: function(){
-						$('#loadscn').hide();
-					}
-				}
-			} else if(localStorage.type == 'EMU') {
-				var settings = {
-					"async": true,
-					"crossDomain": true,
-					"url": "http://192.168.4.1:7878/config",
-					"method": "POST",
-				  	// "headers": {"EMU-CMD": "{\"command\": 18, \"value\":\""+localStorage.ntpServ+"\"}"}
-					"data": "{\"command\": 18, \"value\":\""+localStorage.ntpServ+"\"}",
+					"data": JSON.stringify({"command": 21, "value": localStorage.gateway}),
 					error: function(){
 						$('#loadscn').hide();
 					}
@@ -808,8 +613,7 @@
 			$.ajax(settings).done(function (response) {
 				console.log(response);
 				if(response.RSLT == "OK"){
-					// send_ftpServ();
-					setTimeout(send_ftpServ(), 3000);
+					send_ftpServ();
 				} else {
 		 			$('#loadscn').hide();
 				}
@@ -838,6 +642,18 @@
 					"method": "POST",
 				  	// "headers": {"EMU-CMD": "{\"command\": 8, \"value\":\""+localStorage.ftpServ+"\"}"}
 					"data": "{\"command\": 8, \"value\":\""+localStorage.ftpServ+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 8, "value": localStorage.ftpServ}),
 					error: function(){
 						$('#loadscn').hide();
 					}
@@ -880,6 +696,18 @@
 						$('#loadscn').hide();
 					}
 				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 9, "value": localStorage.ftpPort}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
 			}
 			$.ajax(settings).done(function (response) {
 				console.log(response);
@@ -914,6 +742,18 @@
 					"method": "POST",
 				  	// "headers": {"EMU-CMD": "{\"command\": 10, \"value\":\""+localStorage.ftpUser+"\"}"}
 					"data": "{\"command\": 10, \"value\":\""+localStorage.ftpUser+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 10, "value": localStorage.ftpUser}),
 					error: function(){
 						$('#loadscn').hide();
 					}
@@ -956,6 +796,18 @@
 						$('#loadscn').hide();
 					}
 				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 11, "value": localStorage.ftpPwd}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
 			}
 			$.ajax(settings).done(function (response) {
 				console.log(response);
@@ -994,12 +846,25 @@
 						$('#loadscn').hide();
 					}
 				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 14, "value": localStorage.otaAuto}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
 			}
 			$.ajax(settings).done(function (response) {
 				console.log(response);
 				if(response.RSLT == "OK"){
 					// send_otaUpdate();
-					setTimeout(send_otaUpdate(), 3000);
+					// setTimeout(send_otaUpdate(), 3000);
+					setTimeout(send_mqttServ(), 3000);
 				} else {
 		 			$('#loadscn').hide();
 				}
@@ -1028,6 +893,18 @@
 					"method": "POST",
 				  	// "headers": {"EMU-CMD": "{\"command\": 15, \"value\":\""+localStorage.otaUpdate+"\"}"}
 					"data": "{\"command\": 15, \"value\":\""+localStorage.otaUpdate+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 15, "value": localStorage.otaUpdate}),
 					error: function(){
 						$('#loadscn').hide();
 					}
@@ -1070,6 +947,18 @@
 						$('#loadscn').hide();
 					}
 				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 38, "value": localStorage.mqttServ}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
 			}
 			$.ajax(settings).done(function (response) {
 				console.log(response);
@@ -1104,6 +993,18 @@
 					"method": "POST",
 				  	// "headers": {"EMU-CMD": "{\"command\": 39, \"value\":\""+localStorage.mqttPort+"\"}"}
 					"data": "{\"command\": 39, \"value\":\""+localStorage.mqttPort+"\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 39, "value": localStorage.mqttPort}),
 					error: function(){
 						$('#loadscn').hide();
 					}
@@ -1146,6 +1047,18 @@
 						$('#loadscn').hide();
 					}
 				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 40, "value": localStorage.mqttUser}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
 			}
 			$.ajax(settings).done(function (response) {
 				console.log(response);
@@ -1184,6 +1097,68 @@
 						$('#loadscn').hide();
 					}
 				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 41, "value": localStorage.mqttPwd}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			}
+			$.ajax(settings).done(function (response) {
+				console.log(response);
+				if(response.RSLT == "OK"){
+					// send_sfiffs_update();
+					setTimeout(send_sfiffs_update(), 3000);
+				} else {
+		 			$('#loadscn').hide();
+				}
+			});
+        }
+
+		function send_sfiffs_update() {
+			console.log('sfiffs_update');
+			if (localStorage.type == 'MS') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 50, "value": 0}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if(localStorage.type == 'EMU') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+				  	// "headers": {"EMU-CMD": "{\"command\": 50, \"value\":\"0\"}"}
+					"data": "{\"command\": 50, \"value\":\"0\"}",
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 50, "value": 0}),
+					error: function(){
+						$('#loadscn').hide();
+					}
+				}
 			}
 			$.ajax(settings).done(function (response) {
 				console.log(response);
@@ -1206,7 +1181,6 @@
 					"method": "POST",
 					"headers": {"Content-Type": "application/json"},
 					"data": JSON.stringify({"command": 4, "value": 0}),
-					"data": "{\"command\": 4, \"value\":\"0\"}",
 					error: function(){
 						$('#loadscn').hide();
 					}
@@ -1221,6 +1195,27 @@
 					"data": "{\"command\": 4, \"value\":\"0\"}",
 					error: function(){
 						$('#loadscn').hide();
+					}
+				}
+			} else if (localStorage.type == 'IR') {
+				var settings = {
+					"async": true,
+					"crossDomain": true,
+					"url": "http://192.168.4.1:7878/config",
+					"method": "POST",
+					"headers": {"Content-Type": "application/json"},
+					"data": JSON.stringify({"command": 4, "value": 0}),
+					error: function(){
+						$('#loadscn').hide();
+						$.alert({
+							title: 'Complete',
+							content: 'Device setup complete !',
+							buttons: {
+								OK: function () {
+									location.href = "index.html";
+								},
+							}
+						});
 					}
 				}
 			}
@@ -1353,75 +1348,6 @@
 			</div>
 		</div>
 		</br>
-		<h2 id="storage_id" style="color:#827ffe">Storage ▼</h2>
-		<hr>
-		<div id="dis_storage">
-			<div class="row">
-				<div class="col-xs-4" style="font-size: 20px ">
-					Interval
-				</div>
-				<div class="col-xs-8">
-					<select id="interval_select" class="selectpicker">
-					  <option value="60000">1 min</option>
-					  <option value="120000">2 min</option>
-					  <option value="180000">3 min</option>
-					  <option value="240000">4 min</option>
-					  <option value="300000">5 min</option>
-					  <option value="360000">6 min</option>
-					  <option value="420000">7 min</option>
-					  <option value="480000">8 min</option>
-					  <option value="540000">9 min</option>
-					  <option value="600000">10 min</option>
-					  <option value="660000">11 min</option>
-					  <option value="720000">12 min</option>
-					  <option value="780000">13 min</option>
-					  <option value="840000">14 min</option>
-					  <option value="900000">15 min</option>
-					</select>
-				</div>
-			</div>
-			</br>    
-			<div class="row">
-				<div class="col-xs-4" style="font-size: 20px ">
-					Storage 
-				</div>
-				<div class="col-xs-8">
-					<input type="text" class="form-control storage_address"  style="width: 220px;" >
-				</div>
-			</div>
-			</br>
-			<div class="row">
-				<div class="col-xs-4" style="font-size: 20px ">
-					Storage Path
-				</div>
-				<div class="col-xs-8">
-					<input type="text" class="form-control storage_address_path"  style="width: 220px;" >
-				</div>
-			</div>
-		</div>
-		</br>
-		<!-- <div class="row">
-			<div class="col-xs-4" style="font-size: 20px ">
-				Http Header
-			</div>
-			<div class="col-xs-8">
-				<input id="rtsc_select" type="text" class="form-control" style="width: 220px;" >
-			</div>
-		</div>
-		</br> -->
-		<h2 id="prefix_id" type="button" style="color:#827ffe">PointID Prefix ▼</h2>
-		<hr>
-		<div id="dis_prefix">
-			<div class="row">
-				<div class="col-xs-4" style="font-size: 20px ;">
-					PointID Prefix
-				</div>
-				<div class="col-xs-8">
-					<input type="text" class="form-control prefix" style="width: 220px;" >
-				</div>
-			</div>
-		</div>
-		</br>
 		<h2 id="network_id" type="button" style="color:#827ffe">Network Mode ▼</h2>
 		<hr>
 		<div id="dis_network">
@@ -1461,19 +1387,6 @@
 					<div class="col-xs-8">
 						<input id="gateway" type="text" class="form-control" style="width: 220px;" >
 					</div>
-				</div>
-			</div>
-		</div>
-		</br>
-		<h2 id="ntp_id" type="button" style="color:#827ffe">NTP server ▼</h2>
-		<hr>
-		<div id="dis_ntp">
-			<div class="row">
-				<div class="col-xs-4" style="font-size: 20px ;">
-					NTP Server
-				</div>
-				<div class="col-xs-8">
-					<input type="text" class="form-control ntpServ" style="width: 220px;" >
 				</div>
 			</div>
 		</div>
